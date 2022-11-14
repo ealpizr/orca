@@ -1,5 +1,7 @@
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
+  Alert,
+  AlertIcon,
   Box,
   Button,
   Divider,
@@ -14,17 +16,76 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { type NextPage } from "next";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useRef, useState } from "react";
 
 const Home: NextPage = () => {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
-  const toggleShowPassword = () => setShowPassword((p) => !p);
   const [captcha, setCaptcha] = useState<string | null>(null);
+  const [cookies, setCookies] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const idInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const captchaInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleShowPassword = () => setShowPassword((p) => !p);
 
   const fetchCaptcha = async () => {
     const response = await fetch("/api/captcha");
     const body = await response.json();
+    setCookies(body.cookies);
     setCaptcha(body.captcha);
+  };
+
+  const login = async () => {
+    const id = idInputRef.current?.value || "";
+    const password = passwordInputRef.current?.value || "";
+    const captcha = captchaInputRef.current?.value || "";
+
+    if (!id || !password || !captcha) {
+      return;
+    }
+
+    console.log({
+      id,
+      password,
+      captcha,
+      cookies,
+    });
+
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id,
+        password,
+        captcha,
+        cookies,
+      }),
+    });
+
+    if (response.status === 400) {
+      setError("Datos invalidos");
+      if (captchaInputRef.current) {
+        captchaInputRef.current.value = "";
+      }
+      return fetchCaptcha();
+    }
+
+    if (response.status !== 200) {
+      setError((await response.json()).error);
+      return fetchCaptcha();
+    }
+
+    router.push(
+      { pathname: "/appointments", query: { cookies } },
+      "/appointments"
+    );
   };
 
   useEffect(() => {
@@ -46,9 +107,20 @@ const Home: NextPage = () => {
               />
             ) : (
               <>
+                {error && (
+                  <>
+                    <Alert className="max-w-[270px]" status="error">
+                      <AlertIcon />
+                      {error}
+                    </Alert>
+                    <Divider className="py-1" />
+                  </>
+                )}
+
                 <FormControl>
                   <FormLabel>Identificación</FormLabel>
                   <Input
+                    ref={idInputRef}
                     className="max-w-[400px]"
                     placeholder="1-2345-6789"
                     type="number"
@@ -58,6 +130,7 @@ const Home: NextPage = () => {
                   <FormLabel>Contraseña</FormLabel>
                   <InputGroup>
                     <Input
+                      ref={passwordInputRef}
                       className="max-w-[400px] pr-20"
                       placeholder="**********"
                       type={showPassword ? "text" : "password"}
@@ -80,11 +153,12 @@ const Home: NextPage = () => {
                   src={captcha}
                 />
                 <Input
+                  ref={captchaInputRef}
                   className="max-w-[400px]"
                   placeholder="71SJRG"
                   maxLength={6}
                 />
-                <Button colorScheme="teal" variant="solid">
+                <Button onClick={login} colorScheme="teal" variant="solid">
                   Ingresar
                 </Button>
               </>
