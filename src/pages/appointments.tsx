@@ -1,8 +1,17 @@
 import {
+  Button,
+  Divider,
   Flex,
   FormControl,
   FormLabel,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Spinner,
   Stack,
   Table,
@@ -13,6 +22,7 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { type NextPage } from "next";
 import { useRouter } from "next/router";
@@ -24,7 +34,10 @@ const Appointments: NextPage = () => {
   const { cookies } = router.query;
 
   const [appointments, setAppointments] = useState<Appointment[] | null>(null);
+  const [selectedId, setSelectedId] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
+
+  const modalDisclosure = useDisclosure();
 
   useEffect(() => {
     if (!router.isReady) {
@@ -67,6 +80,11 @@ const Appointments: NextPage = () => {
           />
         ) : (
           <Stack className="overflow-auto px-4">
+            <ConfirmationModal
+              modalDisclosure={modalDisclosure}
+              appointments={appointments}
+              selectedId={selectedId}
+            />
             <FormControl>
               <FormLabel>Fecha</FormLabel>
               <Input
@@ -96,9 +114,16 @@ const Appointments: NextPage = () => {
                   <TableCaption>No hay cupos disponibles</TableCaption>
                 ) : (
                   <Tbody>
-                    {appointments.map((a) => {
+                    {appointments.map((a, idx) => {
                       return (
-                        <Tr key={a.appointmentId}>
+                        <Tr
+                          onClick={() => {
+                            setSelectedId(idx);
+                            modalDisclosure.onOpen();
+                          }}
+                          className="cursor-pointer transition-all hover:bg-blue-400"
+                          key={a.appointmentId}
+                        >
                           <Td className="hidden lg:block" textAlign="center">
                             {a.date}
                           </Td>
@@ -119,6 +144,60 @@ const Appointments: NextPage = () => {
         )}
       </Flex>
     </main>
+  );
+};
+
+const ConfirmationModal = ({
+  modalDisclosure,
+  appointments,
+  selectedId,
+}: {
+  modalDisclosure: {
+    isOpen: boolean;
+    onOpen: () => void;
+    onClose: () => void;
+  };
+  appointments: Appointment[];
+  selectedId: number;
+}) => {
+  const a = appointments[selectedId];
+  if (!a) {
+    return <></>;
+  }
+  return (
+    <>
+      <Modal isOpen={modalDisclosure.isOpen} onClose={modalDisclosure.onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Confirmacion de Cita</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody className="flex flex-col gap-1">
+            <p className="place-self-center text-lg font-bold">
+              Esta seguro que desea confirmar esta cita?
+            </p>
+            <Divider className="py-1" />
+            <p className="font-bold">Fecha</p>
+            <p>{a.date}</p>
+            <p className="font-bold">Hora</p>
+            <p>{a.time}</p>
+            <p className="font-bold">N° de Cita</p>
+            <p>{a.appointmentId}</p>
+            <p className="font-bold">Consultorio</p>
+            <p>{a.facility}</p>
+            <p className="font-bold">Funcionario</p>
+            <p>{a.doctor}</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3}>
+              Confirmar
+            </Button>
+            <Button onClick={modalDisclosure.onClose} variant="ghost">
+              Cerrar
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
   );
 };
 
