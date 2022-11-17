@@ -125,6 +125,7 @@ const Home: NextPage = () => {
                 <FormControl>
                   <FormLabel>Identificación</FormLabel>
                   <Input
+                    name="username"
                     ref={idInputRef}
                     className="max-w-[400px]"
                     placeholder="1-2345-6789"
@@ -135,6 +136,7 @@ const Home: NextPage = () => {
                   <FormLabel>Contraseña</FormLabel>
                   <InputGroup>
                     <Input
+                      name="password"
                       ref={passwordInputRef}
                       className="max-w-[400px] pr-20"
                       placeholder="**********"
