@@ -44,7 +44,7 @@ const appointments = async (req: NextApiRequest, res: NextApiResponse) => {
     .map((row) => {
       const cols = row.querySelectorAll("td");
       if (cols[0]?.innerText.includes("No se encontraron cupos disponibles.")) {
-        res.status(404).json([]);
+        return res.status(404).json([]);
       }
       return {
         date: cols[0]?.innerText,
