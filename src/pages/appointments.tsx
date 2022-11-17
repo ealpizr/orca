@@ -104,10 +104,10 @@ const Appointments: NextPage = () => {
                     </Th>
                     <Th textAlign="center">Hora</Th>
                     <Th className="hidden lg:block" textAlign="center">
-                      Numero cita
+                      N° de Cita
                     </Th>
-                    <Th textAlign="center">Lugar</Th>
-                    <Th textAlign="center">Doctor</Th>
+                    <Th textAlign="center">Consultorio</Th>
+                    <Th textAlign="center">Funcionario</Th>
                   </Tr>
                 </Thead>
                 {appointments.length == 0 ? (
