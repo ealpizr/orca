@@ -43,7 +43,7 @@ const Home: NextPage = () => {
   const login = async () => {
     const id = idInputRef.current?.value || "";
     const password = passwordInputRef.current?.value || "";
-    const captcha = captchaInputRef.current?.value || "";
+    const captcha = captchaInputRef.current?.value.toUpperCase() || "";
 
     if (!id || !password || !captcha) {
       return;
@@ -159,7 +159,7 @@ const Home: NextPage = () => {
                 />
                 <Input
                   ref={captchaInputRef}
-                  className="max-w-[400px]"
+                  className="max-w-[400px] uppercase"
                   placeholder="71SJRG"
                   maxLength={6}
                 />
