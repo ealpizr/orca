@@ -39,12 +39,18 @@ const appointments = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const root = parse(await response.text());
 
+  const viewstate =
+    root
+      .getElementById("javax.faces.ViewState")
+      .innerText.replace("<![CDATA[", "")
+      .replace("]]>", "") || "";
+
   const appointments = root
     .querySelectorAll("table > tbody > tr")
     .map((row) => {
       const cols = row.querySelectorAll("td");
       if (cols[0]?.innerText.includes("No se encontraron cupos disponibles.")) {
-        return res.status(404).json([]);
+        return res.status(404).json({ viewstate, appointments: [] });
       }
       return {
         date: cols[0]?.innerText,
@@ -56,7 +62,7 @@ const appointments = async (req: NextApiRequest, res: NextApiResponse) => {
       };
     });
 
-  res.status(200).json(appointments);
+  res.status(200).json({ viewstate, appointments });
 };
 
 export default appointments;

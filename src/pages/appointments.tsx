@@ -14,6 +14,7 @@ import {
   Thead,
   Tr,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import { type NextPage } from "next";
 import { useRouter } from "next/router";
@@ -23,9 +24,11 @@ import type { Appointment } from "../types";
 
 const Appointments: NextPage = () => {
   const router = useRouter();
+  const toast = useToast();
   const { cookies } = router.query;
 
   const [appointments, setAppointments] = useState<Appointment[] | null>(null);
+  const [viewState, setViewState] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number>(0);
   const [date, setDate] = useState<Date>(new Date());
 
@@ -56,7 +59,41 @@ const Appointments: NextPage = () => {
         cookies,
       }),
     });
-    setAppointments(await response.json());
+    const body = await response.json();
+    setAppointments(body.appointments);
+    setViewState(body.viewstate);
+  };
+
+  const bookAppointment = async (eventId: string) => {
+    const response = await fetch("/api/book", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        date: date.toLocaleString("es-ES").substring(0, 10),
+        viewState,
+        eventId,
+        cookies,
+      }),
+    });
+
+    if (response.status !== 200) {
+      toast({
+        status: "error",
+        isClosable: true,
+        title: "Ocurrio un error al asignar la cita",
+        position: "top",
+      });
+      return;
+    }
+
+    toast({
+      status: "success",
+      isClosable: true,
+      title: "La cita ha sido asignada correctamente",
+      position: "top",
+    });
   };
 
   return (
@@ -76,6 +113,7 @@ const Appointments: NextPage = () => {
               modalDisclosure={modalDisclosure}
               appointments={appointments}
               selectedId={selectedId}
+              bookAppointment={bookAppointment}
             />
             <FormControl>
               <FormLabel>Fecha</FormLabel>
