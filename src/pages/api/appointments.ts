@@ -98,7 +98,7 @@ const appointments = async (req: NextApiRequest, res: NextApiResponse) => {
     .map((row) => {
       const cols = row.querySelectorAll("td");
       if (cols[0]?.innerText.includes("No se encontraron cupos disponibles.")) {
-        return res.status(404).json({ viewstate, appointments: [] });
+        return;
       }
       return {
         date: cols[0]?.innerText,
@@ -109,6 +109,10 @@ const appointments = async (req: NextApiRequest, res: NextApiResponse) => {
         eventId: cols[5]?.querySelector("button")?.getAttribute("id"),
       };
     });
+
+  if (appointments[0] === undefined) {
+    return res.status(404).json({ appointments: [] });
+  }
 
   res.status(200).json({ viewstate, appointments });
 };
