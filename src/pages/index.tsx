@@ -93,8 +93,8 @@ const Home: NextPage = () => {
   return (
     <>
       <main className="h-full">
-        <Flex className="h-full items-center justify-center">
-          <Stack className="max-w-[270px]">
+        <Flex className="h-full flex-col items-center justify-center">
+          <Stack className="max-w-[270px] flex-1 justify-center">
             {!captcha ? (
               <Spinner
                 thickness="5px"
@@ -175,6 +175,17 @@ const Home: NextPage = () => {
               </>
             )}
           </Stack>
+          <footer className="w-full p-2 text-center font-bold">
+            <p>
+              Desarrollado con <span className="text-red-500">♥</span> por{" "}
+              <a
+                href="https://github.com/ealpizr/orca"
+                className="text-blue-500 underline"
+              >
+                ealpizar
+              </a>
+            </p>
+          </footer>
         </Flex>
       </main>
     </>
