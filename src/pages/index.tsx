@@ -52,13 +52,6 @@ const Home: NextPage = () => {
       return;
     }
 
-    console.log({
-      id,
-      password,
-      captcha,
-      cookies,
-    });
-
     setLoading(true);
 
     const response = await fetch("/api/login", {
