@@ -11,7 +11,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       <Head>
         <title>Orca</title>
       </Head>
-      <Component {...pageProps} />{" "}
+      <Component {...pageProps} />
     </ChakraProvider>
   );
 };
