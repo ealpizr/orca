@@ -119,6 +119,7 @@ const Home: NextPage = () => {
                 <FormControl>
                   <FormLabel>Identificación</FormLabel>
                   <Input
+                    autoComplete="off"
                     disabled={loading}
                     as={InputMask}
                     mask="*-****-****"
@@ -133,6 +134,7 @@ const Home: NextPage = () => {
                   <FormLabel>Contraseña</FormLabel>
                   <InputGroup>
                     <Input
+                      autoComplete="off"
                       disabled={loading}
                       name="password"
                       ref={passwordInputRef}
@@ -158,6 +160,7 @@ const Home: NextPage = () => {
                   src={captcha}
                 />
                 <Input
+                  autoComplete="off"
                   disabled={loading}
                   ref={captchaInputRef}
                   className="uppercase"
