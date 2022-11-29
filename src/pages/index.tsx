@@ -97,7 +97,7 @@ const Home: NextPage = () => {
     <>
       <main className="h-full">
         <Flex className="h-full items-center justify-center">
-          <Stack>
+          <Stack className="max-w-[270px]">
             {!captcha ? (
               <Spinner
                 thickness="5px"
@@ -112,7 +112,7 @@ const Home: NextPage = () => {
                 <Divider className="py-1" />
                 {error && (
                   <>
-                    <Alert className="max-w-[270px]" status="error">
+                    <Alert status="error">
                       <AlertIcon />
                       {error}
                     </Alert>
@@ -127,7 +127,6 @@ const Home: NextPage = () => {
                     maskChar={null}
                     name="username"
                     ref={idInputRef}
-                    className="max-w-[400px]"
                     placeholder="1-2345-6789"
                     type="tel"
                   />
@@ -138,7 +137,7 @@ const Home: NextPage = () => {
                     <Input
                       name="password"
                       ref={passwordInputRef}
-                      className="max-w-[400px] pr-20"
+                      className="pr-20"
                       placeholder="**********"
                       type={showPassword ? "text" : "password"}
                     />
@@ -161,7 +160,7 @@ const Home: NextPage = () => {
                 />
                 <Input
                   ref={captchaInputRef}
-                  className="max-w-[400px] uppercase"
+                  className="uppercase"
                   placeholder="71SJRG"
                   maxLength={6}
                 />
