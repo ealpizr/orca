@@ -31,8 +31,6 @@ const login = async (req: NextApiRequest, res: NextApiResponse) => {
       .getElementById("javax.faces.ViewState")
       .getAttribute("value") || "";
 
-  console.log(viewState);
-
   const loginParams = {
     "javax.faces.partial.ajax": "true",
     "formInicioSesion:ejecutarPaso1": "formInicioSesion:ejecutarPaso1",
@@ -58,7 +56,6 @@ const login = async (req: NextApiRequest, res: NextApiResponse) => {
   );
 
   const root = parse(await response.text());
-  console.log(root.toString());
   const loginSuccessful = root.querySelector("partial-response > redirect");
   if (!loginSuccessful) {
     return res.status(400).json({
