@@ -107,18 +107,14 @@ const Home: NextPage = () => {
               />
             ) : (
               <>
-                {/* <Stack className="items-center justify-center gap-1">
-                  <Image className="max-w-[150px]" src="/orca.png" />
-                  <p className="text-lg font-bold text-blue-400">ORCA</p>
-                </Stack>
-                <Divider className="py-1" /> */}
+                <Image className="mx-auto max-w-[200px]" src="/orca.svg" />
+                <Divider className="py-1" />
                 {error && (
                   <>
                     <Alert className="max-w-[270px]" status="error">
                       <AlertIcon />
                       {error}
                     </Alert>
-                    <Divider className="py-1" />
                   </>
                 )}
 
