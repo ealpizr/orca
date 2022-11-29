@@ -98,7 +98,10 @@ const Appointments: NextPage = () => {
 
   return (
     <main className="h-full">
-      <Flex className="h-full items-center justify-center">
+      <Flex className="h-full flex-1 flex-col items-center justify-between">
+        <header className="w-full py-5 shadow">
+          <img className="mx-auto max-w-[100px]" src="/orca.svg" />
+        </header>
         {!appointments ? (
           <Spinner
             thickness="5px"
@@ -108,7 +111,7 @@ const Appointments: NextPage = () => {
             size="xl"
           />
         ) : (
-          <Stack className="overflow-auto px-4">
+          <Stack className="w-full overflow-auto p-4">
             <AppointmentConfirmationModal
               modalDisclosure={modalDisclosure}
               appointments={appointments}
@@ -125,7 +128,7 @@ const Appointments: NextPage = () => {
                 type="date"
               />
             </FormControl>
-            <TableContainer className="rounded-lg border p-2">
+            <TableContainer overflowY="auto" className="rounded-lg border p-2">
               <Table variant="simple">
                 <Thead>
                   <Tr>
@@ -172,6 +175,17 @@ const Appointments: NextPage = () => {
             </TableContainer>
           </Stack>
         )}
+        <footer className="w-full p-2 text-center font-bold">
+          <p>
+            Desarrollado con <span className="text-red-500">♥</span> por{" "}
+            <a
+              href="https://github.com/ealpizr/orca"
+              className="text-blue-500 underline"
+            >
+              ealpizar
+            </a>
+          </p>
+        </footer>
       </Flex>
     </main>
   );
