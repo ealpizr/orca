@@ -31,6 +31,7 @@ const Home: NextPage = () => {
   const idInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const captchaInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const toggleShowPassword = () => setShowPassword((p) => !p);
 
@@ -39,6 +40,7 @@ const Home: NextPage = () => {
     const body = await response.json();
     setCookies(body.cookies);
     setCaptcha(body.captcha);
+    setLoading(false);
   };
 
   const login = async () => {
@@ -56,6 +58,8 @@ const Home: NextPage = () => {
       captcha,
       cookies,
     });
+
+    setLoading(true);
 
     const response = await fetch("/api/login", {
       method: "POST",
@@ -122,6 +126,7 @@ const Home: NextPage = () => {
                 <FormControl>
                   <FormLabel>Identificación</FormLabel>
                   <Input
+                    disabled={loading}
                     as={InputMask}
                     mask="*-****-****"
                     maskChar={null}
@@ -135,6 +140,7 @@ const Home: NextPage = () => {
                   <FormLabel>Contraseña</FormLabel>
                   <InputGroup>
                     <Input
+                      disabled={loading}
                       name="password"
                       ref={passwordInputRef}
                       className="pr-20"
@@ -159,12 +165,18 @@ const Home: NextPage = () => {
                   src={captcha}
                 />
                 <Input
+                  disabled={loading}
                   ref={captchaInputRef}
                   className="uppercase"
                   placeholder="71SJRG"
                   maxLength={6}
                 />
-                <Button onClick={login} colorScheme="linkedin" variant="solid">
+                <Button
+                  isLoading={loading}
+                  onClick={login}
+                  colorScheme="linkedin"
+                  variant="solid"
+                >
                   Ingresar
                 </Button>
               </>
