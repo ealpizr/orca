@@ -165,7 +165,7 @@ const Home: NextPage = () => {
                   placeholder="71SJRG"
                   maxLength={6}
                 />
-                <Button onClick={login} colorScheme="teal" variant="solid">
+                <Button onClick={login} colorScheme="linkedin" variant="solid">
                   Ingresar
                 </Button>
               </>
