@@ -18,6 +18,7 @@ import {
 import { type NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
+import InputMask from "react-input-mask";
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -62,7 +63,7 @@ const Home: NextPage = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        id,
+        id: id.replaceAll("-", ""),
         password,
         captcha,
         cookies,
@@ -121,11 +122,14 @@ const Home: NextPage = () => {
                 <FormControl>
                   <FormLabel>Identificación</FormLabel>
                   <Input
+                    as={InputMask}
+                    mask="*-****-****"
+                    maskChar={null}
                     name="username"
                     ref={idInputRef}
                     className="max-w-[400px]"
                     placeholder="1-2345-6789"
-                    type="number"
+                    type="tel"
                   />
                 </FormControl>
                 <FormControl>
