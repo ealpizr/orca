@@ -111,7 +111,7 @@ const Appointments: NextPage = () => {
             size="xl"
           />
         ) : (
-          <Stack className="overflow-auto p-4">
+          <Stack className="w-full max-w-[1000px] overflow-auto p-4">
             <AppointmentConfirmationModal
               modalDisclosure={modalDisclosure}
               appointments={appointments}
