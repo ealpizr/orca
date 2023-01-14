@@ -1,69 +1,63 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { parse } from "node-html-parser";
 import { parseParams } from "../../utils";
+
 const login = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { id, password, captcha, cookies } = req.body;
+  const { id, password } = req.body;
+
   if (!id) {
     return res.status(400).json({ error: "id is required" });
   }
   if (!password) {
     return res.status(400).json({ error: "password is required" });
   }
-  if (!captcha) {
-    return res.status(400).json({ error: "captcha is required" });
-  }
-  if (!cookies) {
-    return res.status(400).json({ error: "cookies are required" });
-  }
 
-  const viewStateResponse = await fetch(
-    "https://edus.ccss.sa.cr/eduscitasweb/CitasWebPF/faces/xhtml/seguridad/Login.xhtml",
+  const tokenResponse = await fetch(
+    "https://aissfa.ccss.sa.cr/gestortoken/token?codigoSistema=APP-EDUS",
     {
-      method: "GET",
       headers: {
-        "User-Agent": "Mozilla/5.0",
-        Cookie: cookies,
+        Authorization: "Basic YXBwLWVkdXM6YXBiM2R1c3VzM3I5OA==",
       },
     }
   );
-  const viewState =
-    parse(await viewStateResponse.text())
-      .getElementById("javax.faces.ViewState")
-      .getAttribute("value") || "";
+
+  if (tokenResponse.status !== 200) {
+    return res.status(500).json({ message: "something bad happened" });
+  }
 
   const loginParams = {
-    "javax.faces.partial.ajax": "true",
-    "formInicioSesion:ejecutarPaso1": "formInicioSesion:ejecutarPaso1",
-    formInicioSesion: "formInicioSesion",
-    "formInicioSesion:tipIdentificacion_input": "0",
-    "formInicioSesion:usuario": id,
-    "formInicioSesion:clave": password,
-    "formInicioSesion:captchaDigitado": captcha,
-    "javax.faces.ViewState": viewState,
-    "javax.faces.partial.execute": "@all",
+    identificadorUsuario: id,
+    clave: Buffer.from(password).toString("base64"),
+    nombreMovil: "android",
+    codigoSistema: "SCWB",
   };
 
-  const response = await fetch(
-    "https://edus.ccss.sa.cr/CitasWebPF/faces/xhtml/seguridad/Login.xhtml",
+  const loginResponse = await fetch(
+    "https://edus.ccss.sa.cr/ccssmovilmiseservicios/iniciarsesion",
     {
       method: "POST",
       headers: {
+        Authorization: await tokenResponse.text(),
         "Content-Type": "application/x-www-form-urlencoded",
-        Cookie: cookies,
       },
       body: parseParams(loginParams),
     }
   );
 
-  const root = parse(await response.text());
-  const loginSuccessful = root.querySelector("partial-response > redirect");
-  if (!loginSuccessful) {
-    return res.status(400).json({
-      error: "invalid credentials or captcha",
-    });
+  if (loginResponse.status === 500) {
+    return res.status(500).json({ message: "something bad happened" });
   }
 
-  res.status(200).json({ message: "logged in successfully" });
+  if (loginResponse.status !== 200) {
+    return res.status(400).json({ message: "invalid credentials" });
+  }
+
+  const body = await loginResponse.json();
+
+  res.status(200).json({
+    id: body.numeroIdentificacion,
+    user: body.codigoUsuario,
+    fullName: `${body.nombre} ${body.primerApellido} ${body.segundoApellido}`,
+  });
 };
 
 export default login;
