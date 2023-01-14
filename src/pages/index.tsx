@@ -14,12 +14,15 @@ import {
   InputRightElement,
   Stack,
 } from "@chakra-ui/react";
-import { type NextPage } from "next";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import InputMask from "react-input-mask";
 
-const Home: NextPage = () => {
+interface Props {
+  token: string;
+}
+
+const Home = ({ token }: Props) => {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -49,6 +52,7 @@ const Home: NextPage = () => {
       body: JSON.stringify({
         id: id.replaceAll("-", ""),
         password,
+        token,
       }),
     });
 
