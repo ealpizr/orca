@@ -63,7 +63,10 @@ const Home: NextPage = () => {
     }
 
     router.push(
-      { pathname: "/appointments", query: { userData: await response.json() } },
+      {
+        pathname: "/appointments",
+        query: { userData: JSON.stringify(await response.json()) },
+      },
       "/appointments"
     );
   };
