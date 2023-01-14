@@ -2,13 +2,16 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { parseParams } from "../../utils";
 
 const login = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { id, password } = req.body;
+  const { id, password, token } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: "id is required" });
   }
   if (!password) {
     return res.status(400).json({ error: "password is required" });
+  }
+  if (!token) {
+    return res.status(400).json({ error: "token is required" });
   }
 
   const tokenResponse = await fetch(
@@ -51,12 +54,32 @@ const login = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(400).json({ message: "invalid credentials" });
   }
 
-  const body = await loginResponse.json();
+  const login = await loginResponse.json();
+
+  const personalDataResponse = await fetch(
+    `https://edus.ccss.sa.cr/ccssmoviladscripcion/datosPersonales?tipoIdentificacion=0&numIdentificacion=${id}`,
+    {
+      headers: {
+        tokenAccesoAPI: token,
+      },
+    }
+  );
+
+  if (personalDataResponse.status === 403) {
+    return res.status(400).json({ error: "invalid token" });
+  }
+
+  if (personalDataResponse.status !== 200) {
+    return res.status(500).json({ error: "something bad happened" });
+  }
+
+  const personalData = await personalDataResponse.json();
 
   res.status(200).json({
-    id: body.numeroIdentificacion,
-    user: body.codigoUsuario,
-    fullName: `${body.nombre} ${body.primerApellido} ${body.segundoApellido}`,
+    id: login.numeroIdentificacion,
+    user: login.codigoUsuario,
+    fullName: `${login.nombre} ${login.primerApellido} ${login.segundoApellido}`,
+    healthCenterCode: personalData.centroSaludAtencion,
   });
 };
 
