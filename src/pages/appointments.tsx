@@ -114,14 +114,14 @@ const Appointments = ({ token, userData }: GlobalProps) => {
     setLoading(false);
   };
 
-  const bookAppointment = async (eventId: string) => {
+  const bookAppointment = async (appointment: Appointment) => {
     const response = await fetch("/api/book", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        date: date.toLocaleString("es-ES").substring(0, 10),
+        appointment,
       }),
     });
 

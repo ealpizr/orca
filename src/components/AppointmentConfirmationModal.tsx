@@ -21,7 +21,7 @@ interface Props {
     onClose: () => void;
   };
   appointment: Appointment | undefined;
-  bookAppointment: (eventId: string) => Promise<void>;
+  bookAppointment: (appointment: Appointment) => Promise<void>;
 }
 
 const AppointmentConfirmationModal = ({
@@ -37,7 +37,7 @@ const AppointmentConfirmationModal = ({
 
   const handleBooking = async () => {
     setLoading(true);
-    await bookAppointment("");
+    await bookAppointment(appointment);
     setLoading(false);
   };
 
