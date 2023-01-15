@@ -13,7 +13,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 
   useEffect(() => {
     (async () => {
-      const tokenResponse = await fetch("http://localhost:3000/api/token");
+      const tokenResponse = await fetch("/api/token");
       setToken(await tokenResponse.text());
     })();
   }, []);
