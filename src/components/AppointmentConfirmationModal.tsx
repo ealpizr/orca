@@ -20,27 +20,24 @@ interface Props {
     onOpen: () => void;
     onClose: () => void;
   };
-  appointments: Appointment[];
-  selectedId: number;
+  appointment: Appointment | undefined;
   bookAppointment: (eventId: string) => Promise<void>;
 }
 
 const AppointmentConfirmationModal = ({
   modalDisclosure,
-  appointments,
-  selectedId,
+  appointment,
   bookAppointment,
 }: Props) => {
   const [loading, setLoading] = useState<boolean>(false);
 
-  const a = appointments[selectedId];
-  if (!a) {
+  if (!appointment) {
     return <></>;
   }
 
   const handleBooking = async () => {
     setLoading(true);
-    await bookAppointment(a.eventId);
+    await bookAppointment("");
     setLoading(false);
   };
 
@@ -70,15 +67,15 @@ const AppointmentConfirmationModal = ({
                   </p>
                   <Divider className="py-1" />
                   <p className="font-bold">Fecha</p>
-                  <p>{a.date}</p>
+                  <p>{appointment.fecCupo}</p>
                   <p className="font-bold">Hora</p>
-                  <p>{a.time}</p>
+                  <p>{appointment.horaCupo}</p>
                   <p className="font-bold">N° de Cita</p>
-                  <p>{a.appointmentId}</p>
+                  <p>{appointment.conCupo}</p>
                   <p className="font-bold">Consultorio</p>
-                  <p>{a.facility}</p>
+                  <p>{appointment.dscConsultorio}</p>
                   <p className="font-bold">Funcionario</p>
-                  <p>{a.doctor}</p>
+                  <p>{appointment.nomProfesional}</p>
                 </ModalBody>
                 <ModalFooter>
                   <Button onClick={handleBooking} colorScheme="blue" mr={3}>

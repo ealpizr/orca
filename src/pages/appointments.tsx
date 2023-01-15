@@ -3,6 +3,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Select,
   Spinner,
   Stack,
   Table,
@@ -16,52 +17,101 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { type NextPage } from "next";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppointmentConfirmationModal from "../components/AppointmentConfirmationModal";
-import type { Appointment } from "../types";
+import type { Appointment, GlobalProps, Service, Specialty } from "../types";
 
-const Appointments: NextPage = () => {
+const Appointments = ({ token, userData }: GlobalProps) => {
   const router = useRouter();
   const toast = useToast();
-  const { cookies } = router.query;
 
-  const [appointments, setAppointments] = useState<Appointment[] | null>(null);
-  const [viewState, setViewState] = useState<string>("");
-  const [selectedId, setSelectedId] = useState<number>(0);
+  const [services, setServices] = useState<Service[]>([]);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  const [selectedService, setSelectedService] = useState<number>();
+  const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty>();
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment>();
+
+  const [loading, setLoading] = useState<boolean>(true);
   const [date, setDate] = useState<Date>(new Date());
 
   const modalDisclosure = useDisclosure();
 
   useEffect(() => {
-    if (!router.isReady) {
+    if (!userData) {
+      router.push("/");
       return;
     }
-    if (!cookies) {
-      router.push("/");
-    }
-  }, [router]);
+    getServices();
+    getAppointments();
+  }, []);
 
   useEffect(() => {
-    setAppointments(null);
+    if (selectedService === undefined) return;
+    getSpecialties();
+  }, [selectedService]);
+
+  useEffect(() => {
+    if (selectedSpecialty === undefined) return;
     getAppointments();
-  }, [date]);
+  }, [selectedSpecialty, date]);
+
+  const getServices = async () => {
+    const response = await fetch("/api/services", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token,
+        healthCenterCode: userData.healthCenterCode,
+      }),
+    });
+    const body = await response.json();
+    setServices(body);
+    setSelectedService(body[0].codeServicio);
+  };
+
+  const getSpecialties = async () => {
+    const response = await fetch("/api/specialties", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token,
+        healthCenterCode: userData.healthCenterCode,
+        serviceCode: selectedService,
+      }),
+    });
+    const body = await response.json();
+    setSpecialties(body);
+    setSelectedSpecialty(body[0]);
+  };
 
   const getAppointments = async () => {
+    if (!selectedSpecialty) {
+      return;
+    }
     const response = await fetch("/api/appointments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        token,
+        id: userData.id,
+        serviceCode: selectedService,
+        specialtyCode: selectedSpecialty.codeEspecialidad,
+        serviceSpecialtyCode: selectedSpecialty.codeServicioEspecialidad,
         date: date.toLocaleString("es-ES").substring(0, 10),
-        cookies,
       }),
     });
     const body = await response.json();
-    setAppointments(body.appointments);
-    setViewState(body.viewstate);
+    setAppointments(body);
+    setLoading(false);
   };
 
   const bookAppointment = async (eventId: string) => {
@@ -72,9 +122,6 @@ const Appointments: NextPage = () => {
       },
       body: JSON.stringify({
         date: date.toLocaleString("es-ES").substring(0, 10),
-        viewState,
-        eventId,
-        cookies,
       }),
     });
 
@@ -102,7 +149,7 @@ const Appointments: NextPage = () => {
         <header className="w-full py-5 shadow">
           <img className="mx-auto max-w-[100px]" src="/orca.svg" />
         </header>
-        {!appointments ? (
+        {loading ? (
           <Spinner
             thickness="5px"
             speed="0.75s"
@@ -114,10 +161,37 @@ const Appointments: NextPage = () => {
           <Stack className="w-full max-w-[1000px] overflow-auto p-4">
             <AppointmentConfirmationModal
               modalDisclosure={modalDisclosure}
-              appointments={appointments}
-              selectedId={selectedId}
+              appointment={selectedAppointment}
               bookAppointment={bookAppointment}
             />
+            <FormControl>
+              <FormLabel>Servicio</FormLabel>
+              <Select
+                onChange={(e) => {
+                  setSelectedService(parseInt(e.target.value));
+                }}
+              >
+                {services.map((s, idx) => (
+                  <option key={idx} value={s.codeServicio}>
+                    {s.dscServicio}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Especialidad</FormLabel>
+              <Select
+                onChange={(e) => {
+                  setSelectedSpecialty(JSON.parse(e.target.value));
+                }}
+              >
+                {specialties.map((s, idx) => (
+                  <option key={idx} value={JSON.stringify(s)}>
+                    {s.dscEspecialidad}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
             <FormControl>
               <FormLabel>Fecha</FormLabel>
               <Input
@@ -143,29 +217,29 @@ const Appointments: NextPage = () => {
                     <Th textAlign="center">Funcionario</Th>
                   </Tr>
                 </Thead>
-                {appointments.length == 0 ? (
+                {!appointments || appointments.length == 0 ? (
                   <TableCaption>No hay cupos disponibles</TableCaption>
                 ) : (
                   <Tbody>
-                    {appointments.map((a, idx) => {
+                    {appointments.map((a) => {
                       return (
                         <Tr
                           onClick={() => {
-                            setSelectedId(idx);
+                            setSelectedAppointment(a);
                             modalDisclosure.onOpen();
                           }}
                           className="cursor-pointer transition-all hover:bg-blue-400"
-                          key={a.appointmentId}
+                          key={a.conCupo}
                         >
                           <Td className="hidden lg:block" textAlign="center">
-                            {a.date}
+                            {a.fecCupo}
                           </Td>
-                          <Td textAlign="center">{a.time}</Td>
+                          <Td textAlign="center">{a.horaCupo}</Td>
                           <Td className="hidden lg:block" textAlign="center">
-                            {a.appointmentId}
+                            {a.conCupo}
                           </Td>
-                          <Td>{a.facility}</Td>
-                          <Td className="block">{a.doctor}</Td>
+                          <Td>{a.dscConsultorio}</Td>
+                          <Td className="block">{a.nomProfesional}</Td>
                         </Tr>
                       );
                     })}

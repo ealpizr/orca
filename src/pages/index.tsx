@@ -17,12 +17,9 @@ import {
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import InputMask from "react-input-mask";
+import { GlobalProps } from "../types";
 
-interface Props {
-  token: string;
-}
-
-const Home = ({ token }: Props) => {
+const Home = ({ token, setUserData }: GlobalProps) => {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -66,10 +63,12 @@ const Home = ({ token }: Props) => {
       return setError((await response.json()).error);
     }
 
+    setUserData(await response.json());
+
     router.push(
       {
         pathname: "/appointments",
-        query: { userData: JSON.stringify(await response.json()) },
+        // query: { userData: JSON.stringify(await response.json()) },
       },
       "/appointments"
     );

@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 
 import "../styles/globals.css";
 import "../styles/reset.css";
+import { UserData } from "../types";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   const [token, setToken] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -32,7 +34,12 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           />
         </Flex>
       ) : (
-        <Component {...pageProps} token={token} />
+        <Component
+          {...pageProps}
+          token={token}
+          userData={userData}
+          setUserData={setUserData}
+        />
       )}
     </ChakraProvider>
   );
