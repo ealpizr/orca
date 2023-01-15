@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { Specialty } from "../../types";
 
 const specialties = async (req: NextApiRequest, res: NextApiResponse) => {
   const { token, healthCenterCode, serviceCode } = req.body;
@@ -39,7 +40,7 @@ const specialties = async (req: NextApiRequest, res: NextApiResponse) => {
   const specialties = await specialtiesResponse.json();
 
   res.status(200).json(
-    specialties.especialidades.map((s) => {
+    specialties.especialidades.map((s: Specialty) => {
       return {
         ...s,
         dscEspecialidad: s.dscEspecialidad.trim(),
