@@ -116,6 +116,11 @@ const Home = ({ token, setUserData }: GlobalProps) => {
                     className="pr-20"
                     placeholder="**********"
                     type={showPassword ? "text" : "password"}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        login();
+                      }
+                    }}
                   />
                   <InputRightElement className="w-20">
                     <Box
