@@ -5,9 +5,7 @@
 
 ## Orca
 
-A project for bypassing EDUS' date picker limitations and getting appointments any day and time you want.
-
-Currently, the captcha generated from [EDUS](https://edus.ccss.sa.cr/eduscitasweb/) is still required as I didn't find a way to bypass it.
+A project for bypassing [EDUS](https://edus.ccss.sa.cr/eduscitasweb/) date picker limitations and getting appointments any day and time you want.
 
 ## Showcase
 
