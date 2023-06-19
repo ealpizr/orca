@@ -19,12 +19,12 @@ import InputMask from "react-input-mask";
 import Spinner from "~/components/spinner";
 import AppContext from "~/context/app-context";
 
-// TODO: Fix button
-
 export default function Page() {
   const { appContext } = useContext(AppContext);
 
   const [showPassword, setShowPassword] = useState(false);
+
+  const toggleShowPassword = () => setShowPassword((p) => !p);
 
   return appContext.EDUSAPIToken ? (
     <Stack h="100%">
@@ -66,7 +66,7 @@ export default function Page() {
               <InputRightElement>
                 <Box
                   className="flex cursor-pointer items-center justify-center rounded-lg bg-gray-200 p-2 transition-all hover:bg-gray-300"
-                  //onClick={toggleShowPassword}
+                  onClick={toggleShowPassword}
                 >
                   {showPassword ? <ViewOffIcon /> : <ViewIcon />}
                 </Box>
@@ -79,6 +79,7 @@ export default function Page() {
             // onClick={login}
             colorScheme="linkedin"
             variant="solid"
+            className="bg-[var(--chakra-colors-linkedin-500)]"
           >
             Ingresar
           </Button>
