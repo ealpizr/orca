@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { Specialty } from "../../types";
 
 const specialties = async (req: NextApiRequest, res: NextApiResponse) => {
   const { token, healthCenterCode, serviceCode } = req.body;
@@ -37,13 +36,20 @@ const specialties = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(500).json({ error: "something bad happened" });
   }
 
-  const specialties = await specialtiesResponse.json();
+  const body: {
+    especialidades: {
+      codeServicioEspecialidad: number;
+      codeEspecialidad: number;
+      dscEspecialidad: string;
+    }[];
+  } = await specialtiesResponse.json();
 
   res.status(200).json(
-    specialties.especialidades.map((s: Specialty) => {
+    body.especialidades.map((s) => {
       return {
-        ...s,
-        dscEspecialidad: s.dscEspecialidad.trim(),
+        code: s.codeEspecialidad,
+        specialtyServiceCode: s.codeServicioEspecialidad,
+        description: s.dscEspecialidad.trim(),
       };
     })
   );

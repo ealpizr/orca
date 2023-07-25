@@ -29,10 +29,10 @@ export interface Appointment {
   nomProfesional: string;
 }
 
-export interface Service {
-  codeServicio: number;
-  dscServicio: string;
-}
+export type Service = {
+  code: number;
+  description: string;
+};
 
 export interface Specialty {
   codeServicioEspecialidad: number;

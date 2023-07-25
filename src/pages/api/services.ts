@@ -32,9 +32,18 @@ const services = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(500).json({ error: "something bad happened" });
   }
 
-  const services = await servicesResponse.json();
+  const body: {
+    servicios: { codeServicio: number; dscServicio: string }[];
+  } = await servicesResponse.json();
 
-  res.status(200).json(services.servicios);
+  res.status(200).json(
+    body.servicios.map((s) => {
+      return {
+        code: s.codeServicio,
+        description: s.dscServicio,
+      };
+    })
+  );
 };
 
 export default services;
