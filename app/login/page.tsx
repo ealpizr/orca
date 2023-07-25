@@ -39,11 +39,16 @@ export default function Page() {
 
   const toggleShowPassword = () => setShowPassword((p) => !p);
 
-  const clearErrors = () => setErrors({});
+  const clearFieldErrors = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setErrors((p) => {
+      return {
+        ...p,
+        [e.target.name]: undefined,
+      };
+    });
+  };
 
   async function submit() {
-    clearErrors();
-
     const validationSchema = loginSchema.safeParse({
       id: idInputRef.current?.value.replaceAll("-", ""),
       password: passwordInputRef.current?.value,
@@ -92,10 +97,11 @@ export default function Page() {
             <Input
               autoComplete="off"
               disabled={loading}
+              onChange={clearFieldErrors}
               as={InputMask}
               mask="*-****-****"
               maskChar={null}
-              name="username"
+              name="id"
               ref={idInputRef}
               placeholder="1-2345-6789"
               type="tel"
@@ -107,6 +113,7 @@ export default function Page() {
             <InputGroup>
               <Input
                 autoComplete="off"
+                onChange={clearFieldErrors}
                 disabled={loading}
                 name="password"
                 ref={passwordInputRef}
@@ -147,7 +154,7 @@ export default function Page() {
           Desarrollado con <span className="text-red-500">♥</span> por{" "}
           <a
             href="https://github.com/ealpizr/orca"
-            className="text-blue-500 underline"
+            className="text-[var(--chakra-colors-linkedin-500)] underline"
           >
             ealpizar
           </a>
