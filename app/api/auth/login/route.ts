@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { loginSchema } from "~/schemas";
 import { parseParams } from "~/src/utils";
+import { UserData } from "~/types";
 
 export async function POST(request: Request) {
   const schemaValidation = loginSchema.safeParse(await request.json());
@@ -40,13 +41,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const edusLoginParams = {
-    identificadorUsuario: id,
-    clave: Buffer.from(password).toString("base64"),
-    nombreMovil: "android",
-    codigoSistema: "SCWB",
-  };
-
   const edusLoginResponse = await fetch(
     "https://edus.ccss.sa.cr/ccssmovilmiseservicios/iniciarsesion",
     {
@@ -55,7 +49,12 @@ export async function POST(request: Request) {
         Authorization: await aissfaTokenResponse.text(),
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: parseParams(edusLoginParams),
+      body: parseParams({
+        identificadorUsuario: id,
+        clave: Buffer.from(password).toString("base64"),
+        nombreMovil: "android",
+        codigoSistema: "SCWB",
+      }),
     }
   );
 
@@ -81,9 +80,44 @@ export async function POST(request: Request) {
     );
   }
 
-  const userData = await edusLoginResponse.json();
+  const associatedIds = [id, ...(await fetchAssociatedUsers(id, token))];
 
-  const personalDataResponse = await fetch(
+  const userData = await Promise.all(
+    associatedIds.map(async (id) => await fetchUserData(id, token))
+  );
+
+  return NextResponse.json({
+    status: 200,
+    message: "OK",
+    data: userData,
+  });
+}
+
+async function fetchAssociatedUsers(
+  id: number,
+  token: string
+): Promise<number[]> {
+  const response = await fetch(
+    `https://edus.ccss.sa.cr/ccssmovilcitas/autorizados?tipoIdentificacion=0&numIdentificacion=${id}`,
+    {
+      headers: {
+        tokenAccesoAPI: token,
+      },
+    }
+  );
+
+  if (response.status !== 200) {
+    throw new Error("Could not fetch associated users from EDUS");
+  }
+
+  const { autorizados }: { autorizados: { identificacion: number }[] } =
+    await response.json();
+
+  return autorizados.map((u) => u.identificacion);
+}
+
+async function fetchUserData(id: number, token: string): Promise<UserData> {
+  const response = await fetch(
     `https://edus.ccss.sa.cr/ccssmoviladscripcion/datosPersonales?tipoIdentificacion=0&numIdentificacion=${id}`,
     {
       headers: {
@@ -92,27 +126,24 @@ export async function POST(request: Request) {
     }
   );
 
-  if (personalDataResponse.status !== 200) {
-    return NextResponse.json(
-      {
-        status: 500,
-        message: "Internal Server Error",
-        error: "Could not fetch personal data from EDUS",
-      },
-      { status: 500 }
-    );
+  if (response.status !== 200) {
+    throw new Error("Could not fetch personal data from EDUS");
   }
 
-  const personalData = await personalDataResponse.json();
+  const {
+    numeroIdentificacion,
+    nomPaciente,
+    nomPacienteApellido1,
+    nomPacienteApellido2,
+    sexo,
+    centroSaludAtencion,
+  } = await response.json();
 
-  return NextResponse.json({
-    status: 200,
-    message: "OK",
-    data: {
-      id: userData.numeroIdentificacion,
-      user: userData.codigoUsuario,
-      fullName: `${userData.nombre} ${userData.primerApellido} ${userData.segundoApellido}`,
-      healthCenterCode: personalData.centroSaludAtencion,
-    },
-  });
+  return {
+    userId: numeroIdentificacion,
+    fullName:
+      `${nomPaciente} ${nomPacienteApellido1} ${nomPacienteApellido2}`.toUpperCase(),
+    gender: sexo,
+    healthCenterCode: centroSaludAtencion,
+  };
 }

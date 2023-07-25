@@ -7,6 +7,6 @@ export default createContext<{
   appContext: AppContextType;
   setAppContext: Dispatch<SetStateAction<AppContextType>>;
 }>({
-  appContext: { EDUSAPIToken: null },
+  appContext: { EDUSAPIToken: null, user: null },
   setAppContext: () => {},
 });

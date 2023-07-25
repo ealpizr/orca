@@ -13,4 +13,12 @@ export type ComponentWithChildren = {
 
 export type AppContextType = {
   EDUSAPIToken: string | null;
+  user: UserData | null;
+};
+
+export type UserData = {
+  userId: number;
+  fullName: string;
+  gender: "F" | "M";
+  healthCenterCode: number;
 };

@@ -16,26 +16,43 @@ import {
   Stack,
   useToast,
 } from "@chakra-ui/react";
-import { useContext, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useContext, useEffect, useRef, useState } from "react";
 import InputMask from "react-input-mask";
 import Spinner from "~/components/spinner";
+import UserPickerModal from "~/components/user-picker-modal";
 import AppContext from "~/context/app-context";
 import { loginSchema } from "~/schemas";
-import { APIError } from "~/types";
+import AuthService from "~/services/auth-service";
+import { UserData } from "~/types";
 
 export default function Page() {
-  const { appContext } = useContext(AppContext);
+  const { appContext, setAppContext } = useContext(AppContext);
   const toast = useToast({ position: "top" });
+  const router = useRouter();
 
   const idInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
+  const [userPickerState, setUserPickerState] = useState<{
+    isOpen: boolean;
+    users: UserData[];
+  }>({
+    isOpen: false,
+    users: [],
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
     id?: string[] | undefined;
     password?: string[] | undefined;
   }>({});
+
+  useEffect(() => {
+    if (appContext.user !== null) {
+      router.push("/");
+    }
+  }, [appContext.user]);
 
   const toggleShowPassword = () => setShowPassword((p) => !p);
 
@@ -44,6 +61,15 @@ export default function Page() {
       return {
         ...p,
         [e.target.name]: undefined,
+      };
+    });
+  };
+
+  const setActiveUser = (u: UserData) => {
+    setAppContext((p) => {
+      return {
+        ...p,
+        user: u,
       };
     });
   };
@@ -60,27 +86,23 @@ export default function Page() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify(validationSchema.data),
-      });
-
-      if (response.status != 200) {
-        throw new APIError("Credenciales inválidas");
+      setLoading(true);
+      const userData = await AuthService.login(validationSchema.data);
+      console.log(userData);
+      if (userData.length === 1) {
+        setActiveUser(userData[0]!);
+      } else {
+        setUserPickerState({
+          isOpen: true,
+          users: userData,
+        });
       }
     } catch (e) {
-      let message = "Ha ocurrido un error inesperado";
-      if (e instanceof APIError) {
-        message = e.message;
-      }
-
       setLoading(false);
       toast({
         title: "Error",
-        description: message,
+        description: (e as Error).message,
         status: "error",
       });
     }
@@ -89,6 +111,8 @@ export default function Page() {
   return appContext.EDUSAPIToken ? (
     <Stack h="100%">
       <Center h="100%">
+        <UserPickerModal {...userPickerState} onPick={setActiveUser} />
+
         <Stack className="max-w-[270px]">
           <Image className="mx-auto max-w-[200px]" src="/orca.svg" />
           <Divider className="py-1" />

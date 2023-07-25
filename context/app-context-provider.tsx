@@ -4,6 +4,7 @@ import AppContext from "./app-context";
 
 const DEFAULT_VALUE: AppContextType = {
   EDUSAPIToken: null,
+  user: null,
 };
 
 export default function AppContextProvider({
@@ -16,8 +17,14 @@ export default function AppContextProvider({
     if (response.status !== 200) {
       throw new Error("Could not get token");
     }
-    setAppContext({
-      EDUSAPIToken: await response.text(),
+
+    const token = await response.text();
+
+    setAppContext((p) => {
+      return {
+        ...p,
+        EDUSAPIToken: token,
+      };
     });
   }
 
