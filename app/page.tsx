@@ -15,12 +15,10 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure,
   useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import AppointmentConfirmationModal from "~/components/appointment-confirmation-modal";
 import Spinner from "~/components/spinner";
 import AppContext from "~/context/app-context";
 import AppointmentService from "~/services/appointment-service";
@@ -33,46 +31,15 @@ const Appointments = () => {
   const router = useRouter();
   const toast = useToast({ position: "top" });
 
-  const [data, setData] = useState<{
-    services: Service[];
-    specialties: Specialty[];
-    appointments: Appointment[];
-  } | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
-  const [selectedService, setSelectedService] = useState<number>();
+  const [selectedService, setSelectedService] = useState<Service>();
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty>();
-
   const [date, setDate] = useState<Date>(new Date());
 
-  const modalDisclosure = useDisclosure();
-
-  async function fetchInitialData() {
-    const services = await DataService.getServices(
-      appContext.EDUSAPIToken!,
-      appContext.user!.healthCenterCode
-    );
-
-    const specialties = await DataService.getSpecialties(
-      appContext.EDUSAPIToken!,
-      appContext.user!.healthCenterCode,
-      services[0]!.code
-    );
-
-    const appointments = await AppointmentService.getAvailableAppointments(
-      appContext.EDUSAPIToken!,
-      appContext.user!.userId,
-      services[0]!.code,
-      specialties[0]!.code,
-      specialties[0]!.specialtyServiceCode,
-      date.toLocaleString("es-ES").substring(0, 10)
-    );
-
-    setData({
-      services,
-      specialties,
-      appointments,
-    });
-  }
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!appContext.user) {
@@ -80,18 +47,58 @@ const Appointments = () => {
       return;
     }
 
-    fetchInitialData();
+    fetchServices();
   }, []);
 
-  // useEffect(() => {
-  //   if (selectedService === undefined) return;
-  //   getSpecialties();
-  // }, [selectedService]);
+  useEffect(() => {
+    if (!selectedService) return;
 
-  // useEffect(() => {
-  //   if (selectedSpecialty === undefined) return;
-  //   getAppointments();
-  // }, [selectedSpecialty, date]);
+    console.log({ selectedService });
+
+    fetchSpecialties();
+  }, [selectedService]);
+
+  useEffect(() => {
+    if (!selectedSpecialty) return;
+
+    setLoading(true);
+    fetchAvailableAppointments();
+  }, [selectedSpecialty, date]);
+
+  async function fetchServices() {
+    const services = await DataService.getServices(
+      appContext.EDUSAPIToken!,
+      appContext.user!.healthCenterCode
+    );
+
+    setServices(services);
+    setSelectedService(services[0]);
+  }
+
+  async function fetchAvailableAppointments() {
+    const appointments = await AppointmentService.getAvailableAppointments(
+      appContext.EDUSAPIToken!,
+      appContext.user!.userId,
+      selectedService!.code,
+      selectedSpecialty!.code,
+      selectedSpecialty!.specialtyServiceCode,
+      date.toLocaleString("es-ES").substring(0, 10)
+    );
+
+    setAppointments(appointments);
+    setLoading(false);
+  }
+
+  async function fetchSpecialties() {
+    const specialties = await DataService.getSpecialties(
+      appContext.EDUSAPIToken!,
+      appContext.user!.healthCenterCode,
+      selectedService!.code
+    );
+
+    setSpecialties(specialties);
+    setSelectedSpecialty(specialties[0]);
+  }
 
   const bookAppointment = async (appointment: Appointment) => {
     const response = await fetch("/api/book", {
@@ -119,7 +126,7 @@ const Appointments = () => {
     });
   };
 
-  if (appContext.user === null || data === null) {
+  if (appContext.user === null || loading) {
     return <Spinner />;
   }
 
@@ -131,20 +138,21 @@ const Appointments = () => {
         </header>
 
         <Stack className="w-full max-w-[1000px] overflow-auto p-4">
-          <AppointmentConfirmationModal
+          {/* <AppointmentConfirmationModal
             modalDisclosure={modalDisclosure}
             appointment={() => {}}
             bookAppointment={bookAppointment}
-          />
+          /> */}
           <FormControl>
             <FormLabel>Servicio</FormLabel>
             <Select
               onChange={(e) => {
-                setSelectedService(parseInt(e.target.value));
+                setSelectedService(JSON.parse(e.target.value));
               }}
+              value={JSON.stringify(selectedService)}
             >
-              {data.services.map((s, idx) => (
-                <option key={idx} value={s.code}>
+              {services.map((s, idx) => (
+                <option key={idx} value={JSON.stringify(s)}>
                   {s.description}
                 </option>
               ))}
@@ -153,11 +161,10 @@ const Appointments = () => {
           <FormControl>
             <FormLabel>Especialidad</FormLabel>
             <Select
-              onChange={(e) => {
-                setSelectedSpecialty(JSON.parse(e.target.value));
-              }}
+              onChange={(e) => setSelectedSpecialty(JSON.parse(e.target.value))}
+              value={JSON.stringify(selectedSpecialty)}
             >
-              {data.specialties.map((s, idx) => (
+              {specialties.map((s, idx) => (
                 <option key={idx} value={JSON.stringify(s)}>
                   {s.description}
                 </option>
@@ -167,10 +174,10 @@ const Appointments = () => {
           <FormControl>
             <FormLabel>Fecha</FormLabel>
             <Input
-              defaultValue={date.toISOString().substring(0, 10)}
               onChange={(e) => {
                 setDate(new Date(e.target.value.replaceAll("-", "/")));
               }}
+              value={date.toISOString().substring(0, 10)}
               type="date"
             />
           </FormControl>
@@ -189,17 +196,14 @@ const Appointments = () => {
                   <Th textAlign="center">Funcionario</Th>
                 </Tr>
               </Thead>
-              {data.appointments.length === 0 ? (
+              {appointments.length === 0 ? (
                 <TableCaption>No hay cupos disponibles</TableCaption>
               ) : (
                 <Tbody>
-                  {data.appointments.map((a) => {
+                  {appointments.map((a) => {
                     return (
                       <Tr
-                        onClick={() => {
-                          //setSelectedAppointment(a);
-                          modalDisclosure.onOpen();
-                        }}
+                        onClick={() => {}}
                         className="cursor-pointer transition-all hover:bg-blue-400"
                         key={a.conCupo}
                       >
@@ -226,7 +230,7 @@ const Appointments = () => {
             Desarrollado con <span className="text-red-500">♥</span> por{" "}
             <a
               href="https://github.com/ealpizr/orca"
-              className="text-blue-500 underline"
+              className="text-[var(--chakra-colors-linkedin-500)] underline"
             >
               ealpizar
             </a>
