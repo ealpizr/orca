@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { loginSchema } from "~/schemas";
-import { parseParams } from "~/src/utils";
 import { UserData } from "~/types";
+import { parseParams } from "~/utils";
 
 export async function POST(request: Request) {
   const schemaValidation = loginSchema.safeParse(await request.json());

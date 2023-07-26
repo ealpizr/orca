@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { parseParams } from "../../utils";
+import { parseParams } from "../../../utils";
 
 const login = async (req: NextApiRequest, res: NextApiResponse) => {
   const { id, password, token } = req.body;
