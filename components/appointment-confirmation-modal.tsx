@@ -10,40 +10,40 @@ import {
   ModalOverlay,
   Spinner,
 } from "@chakra-ui/react";
+import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { Appointment } from "../types";
 
-interface Props {
-  modalDisclosure: {
-    isOpen: boolean;
-    onOpen: () => void;
-    onClose: () => void;
-  };
+type Props = {
+  setAppointment: Dispatch<SetStateAction<Appointment | undefined>>;
   appointment: Appointment | undefined;
-  bookAppointment: (appointment: Appointment) => Promise<void>;
-}
+  bookAppointment: () => Promise<void>;
+};
 
 const AppointmentConfirmationModal = ({
-  modalDisclosure,
   appointment,
+  setAppointment,
   bookAppointment,
 }: Props) => {
   const [loading, setLoading] = useState<boolean>(false);
+
+  const handleBooking = async () => {
+    setLoading(true);
+    await bookAppointment();
+    setLoading(false);
+  };
 
   if (!appointment) {
     return <></>;
   }
 
-  const handleBooking = async () => {
-    setLoading(true);
-    await bookAppointment(appointment);
-    setLoading(false);
-  };
-
   return (
     <>
-      <Modal isOpen={modalDisclosure.isOpen} onClose={modalDisclosure.onClose}>
+      <Modal
+        isOpen={appointment !== undefined}
+        onClose={() => setAppointment(undefined)}
+      >
         <ModalOverlay />
         <ModalContent>
           <>
@@ -59,30 +59,40 @@ const AppointmentConfirmationModal = ({
               </ModalBody>
             ) : (
               <>
-                <ModalHeader>Confirmacion de Cita</ModalHeader>
+                <ModalHeader>Confirmación de Cita</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody className="flex flex-col gap-1">
                   <p className="place-self-center text-lg font-bold">
-                    Esta seguro que desea confirmar esta cita?
+                    ¿Desea confirmar la cita?
                   </p>
                   <Divider className="py-1" />
                   <p className="font-bold">Fecha</p>
-                  <p>{appointment.fecCupo}</p>
+                  <p>{appointment!.fecCupo}</p>
                   <p className="font-bold">Hora</p>
-                  <p>{appointment.horaCupo}</p>
+                  <p>{appointment!.horaCupo}</p>
                   <p className="font-bold">N° de Cita</p>
-                  <p>{appointment.conCupo}</p>
+                  <p>{appointment!.conCupo}</p>
                   <p className="font-bold">Consultorio</p>
-                  <p>{appointment.dscConsultorio}</p>
+                  <p>{appointment!.dscConsultorio}</p>
                   <p className="font-bold">Funcionario</p>
-                  <p>{appointment.nomProfesional}</p>
+                  <p>{appointment!.nomProfesional}</p>
                 </ModalBody>
                 <ModalFooter>
-                  <Button onClick={handleBooking} colorScheme="blue" mr={3}>
-                    Confirmar
-                  </Button>
-                  <Button onClick={modalDisclosure.onClose} variant="ghost">
+                  <Button
+                    mr={3}
+                    onClick={() => {
+                      setAppointment(undefined);
+                    }}
+                    variant="ghost"
+                  >
                     Cerrar
+                  </Button>
+                  <Button
+                    onClick={handleBooking}
+                    colorScheme="linkedin"
+                    className="bg-[var(--chakra-colors-linkedin-500)]"
+                  >
+                    Confirmar
                   </Button>
                 </ModalFooter>
               </>
