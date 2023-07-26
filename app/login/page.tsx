@@ -2,6 +2,7 @@
 
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
+  As,
   Box,
   Button,
   Center,
@@ -126,7 +127,7 @@ export default function Page() {
               autoComplete="off"
               disabled={loading}
               onChange={clearFieldErrors}
-              as={InputMask}
+              as={InputMask as As}
               mask="*-****-****"
               maskChar={null}
               name="id"

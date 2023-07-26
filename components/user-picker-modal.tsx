@@ -19,7 +19,7 @@ type Props = {
 };
 
 export default function UserPickerModal({ isOpen, users, onPick }: Props) {
-  const { onOpen, onClose } = useDisclosure();
+  const { onClose } = useDisclosure();
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
