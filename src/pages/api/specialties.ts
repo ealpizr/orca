@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 const specialties = async (req: NextApiRequest, res: NextApiResponse) => {
   const { token, healthCenterCode, serviceCode } = req.body;

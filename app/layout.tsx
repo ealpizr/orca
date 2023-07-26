@@ -1,6 +1,6 @@
 import "~/styles/main.css";
 
-import { ComponentWithChildren } from "~/types";
+import type { ComponentWithChildren } from "~/types";
 import { Providers } from "./providers";
 
 export default function RootLayout({ children }: ComponentWithChildren) {

@@ -24,7 +24,7 @@ import UserPickerModal from "~/components/user-picker-modal";
 import AppContext from "~/context/app-context";
 import { loginSchema } from "~/schemas";
 import AuthService from "~/services/auth-service";
-import { UserData } from "~/types";
+import type { UserData } from "~/types";
 
 export default function Page() {
   const { appContext, setAppContext } = useContext(AppContext);
@@ -52,7 +52,7 @@ export default function Page() {
     if (appContext.user !== null) {
       router.push("/");
     }
-  }, [appContext.user]);
+  }, [appContext.user, router]);
 
   const toggleShowPassword = () => setShowPassword((p) => !p);
 
@@ -90,8 +90,8 @@ export default function Page() {
       setLoading(true);
       const userData = await AuthService.login(validationSchema.data);
       console.log(userData);
-      if (userData.length === 1) {
-        setActiveUser(userData[0]!);
+      if (userData.length === 1 && userData[0]) {
+        setActiveUser(userData[0]);
       } else {
         setUserPickerState({
           isOpen: true,
@@ -114,7 +114,11 @@ export default function Page() {
         <UserPickerModal {...userPickerState} onPick={setActiveUser} />
 
         <Stack className="max-w-[270px]">
-          <Image className="mx-auto max-w-[200px]" src="/orca.svg" />
+          <Image
+            alt="Orca's application logo"
+            className="mx-auto max-w-[200px]"
+            src="/orca.svg"
+          />
           <Divider className="py-1" />
           <FormControl isInvalid={errors.id != undefined}>
             <FormLabel>Identificación</FormLabel>

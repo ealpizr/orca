@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { loginSchema } from "~/schemas";
-import { UserData } from "~/types";
+import type { UserData } from "~/types";
 import { parseParams } from "~/utils";
 
 export async function POST(request: Request) {

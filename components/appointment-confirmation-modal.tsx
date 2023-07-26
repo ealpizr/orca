@@ -9,11 +9,10 @@ import {
   ModalHeader,
   ModalOverlay,
   Spinner,
-  useDisclosure,
 } from "@chakra-ui/react";
-import { Dispatch, SetStateAction, useContext, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
-import AppContext from "~/context/app-context";
 import { Appointment } from "../types";
 
 type Props = {
@@ -27,9 +26,7 @@ const AppointmentConfirmationModal = ({
   setAppointment,
   bookAppointment,
 }: Props) => {
-  const { appContext } = useContext(AppContext);
   const [loading, setLoading] = useState<boolean>(false);
-  const { onClose } = useDisclosure();
 
   const handleBooking = async () => {
     setLoading(true);

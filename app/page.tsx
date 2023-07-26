@@ -4,6 +4,7 @@ import {
   Flex,
   FormControl,
   FormLabel,
+  Image,
   Input,
   Select,
   Stack,
@@ -42,7 +43,6 @@ const Appointments = () => {
   const [date, setDate] = useState<Date>(new Date());
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!appContext.user) {
@@ -51,20 +51,20 @@ const Appointments = () => {
     }
 
     fetchServices();
-  }, []);
+  }, [appContext.user, fetchServices, router]);
 
   useEffect(() => {
     if (!selectedService) return;
 
     fetchSpecialties();
-  }, [selectedService]);
+  }, [selectedService, fetchSpecialties]);
 
   useEffect(() => {
     if (!selectedSpecialty) return;
 
     setLoading(true);
     fetchAvailableAppointments();
-  }, [selectedSpecialty, date]);
+  }, [selectedSpecialty, date, fetchAvailableAppointments]);
 
   async function fetchServices() {
     const services = await DataService.getServices(
@@ -130,7 +130,7 @@ const Appointments = () => {
     <main className="h-full">
       <Flex className="h-full flex-1 flex-col items-center justify-between">
         <header className="w-full py-5 shadow">
-          <img className="mx-auto max-w-[100px]" src="/orca.svg" />
+          <Image className="mx-auto max-w-[100px]" src="/orca.svg" />
         </header>
 
         <Stack className="w-full max-w-[1000px] overflow-auto p-4">
