@@ -19,6 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
+import AppointmentConfirmationModal from "~/components/appointment-confirmation-modal";
 import Spinner from "~/components/spinner";
 import AppContext from "~/context/app-context";
 import AppointmentService from "~/services/appointment-service";
@@ -37,9 +38,11 @@ const Appointments = () => {
 
   const [selectedService, setSelectedService] = useState<Service>();
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty>();
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment>();
   const [date, setDate] = useState<Date>(new Date());
 
   const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!appContext.user) {
@@ -52,8 +55,6 @@ const Appointments = () => {
 
   useEffect(() => {
     if (!selectedService) return;
-
-    console.log({ selectedService });
 
     fetchSpecialties();
   }, [selectedService]);
@@ -82,7 +83,7 @@ const Appointments = () => {
       selectedService!.code,
       selectedSpecialty!.code,
       selectedSpecialty!.specialtyServiceCode,
-      date.toLocaleString("es-ES").substring(0, 10)
+      date.toLocaleDateString("es-CR")
     );
 
     setAppointments(appointments);
@@ -100,31 +101,26 @@ const Appointments = () => {
     setSelectedSpecialty(specialties[0]);
   }
 
-  const bookAppointment = async (appointment: Appointment) => {
-    const response = await fetch("/api/book", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        appointment,
-      }),
-    });
-
-    if (response.status !== 200) {
+  async function bookAppointment() {
+    try {
+      await AppointmentService.bookAppointment(
+        appContext.user!.userId,
+        selectedSpecialty!.specialtyServiceCode,
+        date.toLocaleDateString("es-CR"),
+        selectedAppointment!,
+        appContext.EDUSAPIToken!
+      );
+      toast({
+        status: "success",
+        title: "La cita ha sido asignada correctamente",
+      });
+    } catch (e) {
       toast({
         status: "error",
-        title: "Ocurrio un error al asignar la cita",
-        position: "top",
+        title: "Ocurrió un problema al asignar la cita",
       });
-      return;
     }
-
-    toast({
-      status: "success",
-      title: "La cita ha sido asignada correctamente",
-    });
-  };
+  }
 
   if (appContext.user === null || loading) {
     return <Spinner />;
@@ -138,11 +134,11 @@ const Appointments = () => {
         </header>
 
         <Stack className="w-full max-w-[1000px] overflow-auto p-4">
-          {/* <AppointmentConfirmationModal
-            modalDisclosure={modalDisclosure}
-            appointment={() => {}}
+          <AppointmentConfirmationModal
+            setAppointment={setSelectedAppointment}
+            appointment={selectedAppointment}
             bookAppointment={bookAppointment}
-          /> */}
+          />
           <FormControl>
             <FormLabel>Servicio</FormLabel>
             <Select
@@ -203,7 +199,9 @@ const Appointments = () => {
                   {appointments.map((a) => {
                     return (
                       <Tr
-                        onClick={() => {}}
+                        onClick={() => {
+                          setSelectedAppointment(a);
+                        }}
                         className="cursor-pointer transition-all hover:bg-blue-400"
                         key={a.conCupo}
                       >
