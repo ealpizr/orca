@@ -29,7 +29,6 @@ import type { Appointment, Service, Specialty } from "~/types";
 
 const Appointments = () => {
   const { appContext } = useContext(AppContext);
-
   const router = useRouter();
   const toast = useToast({ position: "top" });
 
@@ -51,73 +50,107 @@ const Appointments = () => {
     }
 
     fetchServices();
-  }, [appContext.user, fetchServices, router]);
+  }, []);
 
   useEffect(() => {
     if (!selectedService) return;
 
     fetchSpecialties();
-  }, [selectedService, fetchSpecialties]);
+  }, [selectedService]);
 
   useEffect(() => {
     if (!selectedSpecialty) return;
 
-    setLoading(true);
     fetchAvailableAppointments();
-  }, [selectedSpecialty, date, fetchAvailableAppointments]);
+  }, [selectedSpecialty, date]);
 
   async function fetchServices() {
-    const services = await DataService.getServices(
-      appContext.EDUSAPIToken!,
-      appContext.user!.healthCenterCode
-    );
+    try {
+      setLoading(true);
+      const services = await DataService.getServices(
+        appContext.user!.healthCenterCode
+      );
 
-    setServices(services);
-    setSelectedService(services[0]);
+      setServices(services);
+      setSelectedService(services[0]);
+    } catch (e) {
+      console.error(e);
+      toast({
+        status: "error",
+        title: "Error",
+        description: (e as Error).message,
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function fetchAvailableAppointments() {
-    const appointments = await AppointmentService.getAvailableAppointments(
-      appContext.EDUSAPIToken!,
-      appContext.user!.userId,
-      selectedService!.code,
-      selectedSpecialty!.code,
-      selectedSpecialty!.specialtyServiceCode,
-      date.toLocaleDateString("es-CR")
-    );
+    try {
+      setLoading(true);
+      const appointments = await AppointmentService.getAvailableAppointments(
+        appContext.user!.identification,
+        selectedService!.code,
+        selectedSpecialty!.code,
+        selectedSpecialty!.specialtyServiceCode,
+        date.toLocaleDateString("es-CR")
+      );
 
-    setAppointments(appointments);
-    setLoading(false);
+      setAppointments(appointments);
+      setLoading(false);
+    } catch (e) {
+      console.error(e);
+      toast({
+        status: "error",
+        title: "Error",
+        description: (e as Error).message,
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function fetchSpecialties() {
-    const specialties = await DataService.getSpecialties(
-      appContext.EDUSAPIToken!,
-      appContext.user!.healthCenterCode,
-      selectedService!.code
-    );
+    try {
+      setLoading(true);
+      const specialties = await DataService.getSpecialties(
+        appContext.user!.healthCenterCode,
+        selectedService!.code
+      );
 
-    setSpecialties(specialties);
-    setSelectedSpecialty(specialties[0]);
+      setSpecialties(specialties);
+      setSelectedSpecialty(specialties[0]);
+    } catch (e) {
+      console.error(e);
+      toast({
+        status: "error",
+        title: "Error",
+        description: (e as Error).message,
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function bookAppointment() {
     try {
       await AppointmentService.bookAppointment(
-        appContext.user!.userId,
+        appContext.user!.identification,
+        appContext.user!.user,
         selectedSpecialty!.specialtyServiceCode,
         date.toLocaleDateString("es-CR"),
-        selectedAppointment!,
-        appContext.EDUSAPIToken!
+        selectedAppointment!
       );
       toast({
         status: "success",
         title: "La cita ha sido asignada correctamente",
       });
     } catch (e) {
+      console.error(e);
       toast({
         status: "error",
-        title: "Ocurrió un problema al asignar la cita",
+        title: "Error",
+        description: (e as Error).message,
       });
     }
   }

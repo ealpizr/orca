@@ -2,7 +2,6 @@ import { Appointment } from "~/types";
 
 export default class AppointmentService {
   static getAvailableAppointments(
-    token: string,
     id: number,
     serviceCode: number,
     specialtyCode: number,
@@ -11,20 +10,9 @@ export default class AppointmentService {
   ): Promise<Appointment[]> {
     return new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch("/api/appointments", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token,
-            id,
-            serviceCode,
-            specialtyCode,
-            serviceSpecialtyCode,
-            date,
-          }),
-        });
+        const response = await fetch(
+          `/api/appointments?id=${id}&serviceCode=${serviceCode}&specialtyCode=${specialtyCode}&serviceSpecialtyCode=${serviceSpecialtyCode}&date=${date}`
+        );
 
         if (response.status !== 200) {
           throw new Error();
@@ -35,37 +23,32 @@ export default class AppointmentService {
         resolve(body);
       } catch (e) {
         console.error(e);
-        reject(new Error("Could not fetch available appointments"));
+        reject(new Error("Error al obtener cupos"));
       }
     });
   }
 
-  // TODO: move to server
   static bookAppointment(
-    userId: number,
+    id: number,
+    user: string,
     serviceSpecialtyCode: number,
     date: string,
-    appointment: Appointment,
-    token: string
+    appointment: Appointment
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        const url = new URL("https://edus.ccss.sa.cr/ccssmovilcitas");
-        url.searchParams.set("tipoIdentificacion", "0");
-        url.searchParams.set("numIdentificacion", userId.toString());
-        url.searchParams.set(
-          "codServicioEspecialidad",
-          serviceSpecialtyCode.toString()
-        );
-        url.searchParams.set("fechaSeleccionada", date);
-
-        const response = await fetch(url, {
+        const response = await fetch("/api/appointments", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            tokenAccesoAPI: token,
           },
-          body: JSON.stringify(appointment),
+          body: JSON.stringify({
+            id,
+            user,
+            serviceSpecialtyCode,
+            date,
+            appointment,
+          }),
         });
 
         if (response.status !== 200) {
@@ -74,8 +57,7 @@ export default class AppointmentService {
 
         resolve();
       } catch (e) {
-        console.error(e);
-        reject(new Error("Could not register appointment"));
+        reject(new Error("Error al registrar la cita"));
       }
     });
   }

@@ -1,9 +1,12 @@
 import "~/styles/main.css";
 
-import type { ComponentWithChildren } from "~/types";
 import { Providers } from "./providers";
 
-export default function RootLayout({ children }: ComponentWithChildren) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="es">
       <body>
