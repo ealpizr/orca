@@ -24,16 +24,20 @@ export async function POST(request: Request) {
     const aissfaToken = await fetchAissfaToken();
     const { id, password } = schemaValidation.data;
 
-    await login(id, password, aissfaToken);
+    const user = await login(id, password, aissfaToken);
     const associatedIds = [id, ...(await fetchAssociatedUsers(id, token))];
 
     const userData = await Promise.all(
-      associatedIds.map(async (id) => await fetchUserData(id, token))
+      associatedIds.map(async (id) => {
+        const d = await fetchUserData(id, token);
+        return {
+          ...d,
+          user,
+        };
+      })
     );
 
     return NextResponse.json({
-      status: 200,
-      message: "OK",
       data: userData,
     });
   } catch (e) {
@@ -97,6 +101,10 @@ async function login(id: number, password: string, token: string) {
   if (edusLoginResponse.status !== 200) {
     throw new InvalidCredentialsError();
   }
+
+  const body: { codigoUsuario: string } = await edusLoginResponse.json();
+
+  return body.codigoUsuario;
 }
 
 async function fetchAssociatedUsers(
