@@ -67,6 +67,7 @@ export default function Page() {
   };
 
   const setActiveUser = (u: UserData) => {
+    sessionStorage.setItem("user", JSON.stringify(u));
     setAppContext({
       user: u,
     });
