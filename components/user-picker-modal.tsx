@@ -27,7 +27,11 @@ export default function UserPickerModal({ isOpen, users, onPick }: Props) {
         <ModalHeader>Usuarios</ModalHeader>
         <ModalBody display="flex" flexDir="column" gap={3}>
           {users.map((u) => (
-            <Card key={u.userId} onClick={() => onPick(u)} cursor="pointer">
+            <Card
+              key={u.identification}
+              onClick={() => onPick(u)}
+              cursor="pointer"
+            >
               <CardBody display="flex" alignItems="center" gap={3}>
                 <Avatar name={u.fullName} />
                 <Text>{u.fullName}</Text>

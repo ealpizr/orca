@@ -1,23 +1,12 @@
 import { Service, Specialty } from "~/types";
 
 export default class DataService {
-  static getServices(
-    token: string,
-    healthCenterCode: number
-  ): Promise<Service[]> {
+  static getServices(healthCenterCode: number): Promise<Service[]> {
     return new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch("/api/services", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token,
-            healthCenterCode,
-          }),
-        });
-
+        const response = await fetch(
+          `/api/services?healthCenterCode=${healthCenterCode}`
+        );
         if (response.status !== 200) {
           throw new Error();
         }
@@ -26,30 +15,20 @@ export default class DataService {
 
         resolve(body);
       } catch (e) {
-        console.error(e);
-        reject(new Error("Could not fetch health center services"));
+        reject(new Error("Error al obtener servicios"));
       }
     });
   }
 
   static getSpecialties(
-    token: string,
     healthCenterCode: number,
     serviceCode: number
   ): Promise<Specialty[]> {
     return new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch("/api/specialties", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token,
-            healthCenterCode,
-            serviceCode,
-          }),
-        });
+        const response = await fetch(
+          `/api/specialties?healthCenterCode=${healthCenterCode}&serviceCode=${serviceCode}`
+        );
 
         if (response.status !== 200) {
           throw new Error();
@@ -59,8 +38,7 @@ export default class DataService {
 
         resolve(body);
       } catch (e) {
-        console.error(e);
-        reject(new Error("Could not fetch health center specialties"));
+        reject(new Error("Error al obtener especialidades"));
       }
     });
   }
