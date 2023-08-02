@@ -67,10 +67,8 @@ export default function Page() {
   };
 
   const setActiveUser = (u: UserData) => {
-    setAppContext((p) => {
-      return {
-        user: u,
-      };
+    setAppContext({
+      user: u,
     });
   };
 
