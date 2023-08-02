@@ -10,19 +10,19 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Image,
   Input,
   InputGroup,
   InputRightElement,
   Stack,
   useToast,
 } from "@chakra-ui/react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import InputMask from "react-input-mask";
-import Spinner from "~/components/spinner";
 import UserPickerModal from "~/components/user-picker-modal";
 import AppContext from "~/context/app-context";
+import OrcaLogo from "~/public/orca.svg";
 import { loginSchema } from "~/schemas";
 import AuthService from "~/services/auth-service";
 import type { UserData } from "~/types";
@@ -69,7 +69,6 @@ export default function Page() {
   const setActiveUser = (u: UserData) => {
     setAppContext((p) => {
       return {
-        ...p,
         user: u,
       };
     });
@@ -79,7 +78,6 @@ export default function Page() {
     const validationSchema = loginSchema.safeParse({
       id: idInputRef.current?.value.replaceAll("-", ""),
       password: passwordInputRef.current?.value,
-      token: appContext.EDUSAPIToken,
     });
 
     if (!validationSchema.success) {
@@ -90,7 +88,7 @@ export default function Page() {
     try {
       setLoading(true);
       const userData = await AuthService.login(validationSchema.data);
-      console.log(userData);
+
       if (userData.length === 1 && userData[0]) {
         setActiveUser(userData[0]);
       } else {
@@ -109,7 +107,7 @@ export default function Page() {
     }
   }
 
-  return appContext.EDUSAPIToken ? (
+  return (
     <Stack h="100%">
       <Center h="100%">
         <UserPickerModal {...userPickerState} onPick={setActiveUser} />
@@ -117,8 +115,8 @@ export default function Page() {
         <Stack className="max-w-[270px]">
           <Image
             alt="Orca's application logo"
-            className="mx-auto max-w-[200px]"
-            src="/orca.svg"
+            className="mx-auto w-[200px]"
+            src={OrcaLogo}
           />
           <Divider className="py-1" />
           <FormControl isInvalid={errors.id != undefined}>
@@ -190,7 +188,5 @@ export default function Page() {
         </p>
       </footer>
     </Stack>
-  ) : (
-    <Spinner />
   );
 }

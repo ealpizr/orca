@@ -1,26 +1,59 @@
 import { NextResponse } from "next/server";
 import { loginSchema } from "~/schemas";
 import type { UserData } from "~/types";
-import { parseParams } from "~/utils";
+import { EDUSCrypto, InvalidCredentialsError, parseParams } from "~/utils";
 
 export async function POST(request: Request) {
-  const schemaValidation = loginSchema.safeParse(await request.json());
+  try {
+    const schemaValidation = loginSchema.safeParse(await request.json());
 
-  if (!schemaValidation.success) {
+    if (!schemaValidation.success) {
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "Bad request",
+          errors: schemaValidation.error.flatten().fieldErrors,
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const token = EDUSCrypto.generateToken();
+    const aissfaToken = await fetchAissfaToken();
+    const { id, password } = schemaValidation.data;
+
+    await login(id, password, aissfaToken);
+    const associatedIds = [id, ...(await fetchAssociatedUsers(id, token))];
+
+    const userData = await Promise.all(
+      associatedIds.map(async (id) => await fetchUserData(id, token))
+    );
+
+    return NextResponse.json({
+      status: 200,
+      message: "OK",
+      data: userData,
+    });
+  } catch (e) {
+    console.error(e);
+
+    if (e instanceof InvalidCredentialsError) {
+      return NextResponse.json(
+        { message: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
-      {
-        status: 400,
-        message: "Bad request",
-        errors: schemaValidation.error.flatten().fieldErrors,
-      },
-      {
-        status: 400,
-      }
+      { message: "Something wrong happened" },
+      { status: 500 }
     );
   }
+}
 
-  const { id, password, token } = schemaValidation.data;
-
+async function fetchAissfaToken() {
   const aissfaTokenResponse = await fetch(
     "https://aissfa.ccss.sa.cr/gestortoken/token?codigoSistema=APP-EDUS",
     {
@@ -31,22 +64,21 @@ export async function POST(request: Request) {
   );
 
   if (aissfaTokenResponse.status !== 200) {
-    return NextResponse.json(
-      {
-        status: 500,
-        message: "Internal Server Error",
-        error: "Could not fetch AISSFA token",
-      },
-      { status: 500 }
-    );
+    throw new Error("Could not fetch AISSFA token");
   }
 
+  const token = await aissfaTokenResponse.text();
+
+  return token;
+}
+
+async function login(id: number, password: string, token: string) {
   const edusLoginResponse = await fetch(
     "https://edus.ccss.sa.cr/ccssmovilmiseservicios/iniciarsesion",
     {
       method: "POST",
       headers: {
-        Authorization: await aissfaTokenResponse.text(),
+        Authorization: token,
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: parseParams({
@@ -59,38 +91,12 @@ export async function POST(request: Request) {
   );
 
   if (edusLoginResponse.status === 500) {
-    return NextResponse.json(
-      {
-        status: 500,
-        message: "Internal Server Error",
-        error: "Could not log in to EDUS",
-      },
-      { status: 500 }
-    );
+    throw new Error("Could not log in to EDUS");
   }
 
   if (edusLoginResponse.status !== 200) {
-    return NextResponse.json(
-      {
-        status: 401,
-        message: "Unauthorized",
-        error: "Invalid credentials",
-      },
-      { status: 401 }
-    );
+    throw new InvalidCredentialsError();
   }
-
-  const associatedIds = [id, ...(await fetchAssociatedUsers(id, token))];
-
-  const userData = await Promise.all(
-    associatedIds.map(async (id) => await fetchUserData(id, token))
-  );
-
-  return NextResponse.json({
-    status: 200,
-    message: "OK",
-    data: userData,
-  });
 }
 
 async function fetchAssociatedUsers(
@@ -135,15 +141,15 @@ async function fetchUserData(id: number, token: string): Promise<UserData> {
     nomPaciente,
     nomPacienteApellido1,
     nomPacienteApellido2,
-    sexo,
+    codigoUsuario,
     centroSaludAtencion,
   } = await response.json();
 
   return {
-    userId: numeroIdentificacion,
+    user: codigoUsuario,
+    identification: numeroIdentificacion,
     fullName:
       `${nomPaciente} ${nomPacienteApellido1} ${nomPacienteApellido2}`.toUpperCase(),
-    gender: sexo,
     healthCenterCode: centroSaludAtencion,
   };
 }
