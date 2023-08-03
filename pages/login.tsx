@@ -1,5 +1,3 @@
-"use client";
-
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
   As,
@@ -27,7 +25,7 @@ import { loginSchema } from "~/schemas";
 import AuthService from "~/services/auth-service";
 import type { UserData } from "~/types";
 
-export default function Page() {
+export default function LoginPage() {
   const { appContext, setAppContext } = useContext(AppContext);
   const toast = useToast({ position: "top" });
   const router = useRouter();
