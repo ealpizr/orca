@@ -6,7 +6,7 @@ const bookValidationSchema = z.object({
   id: z
     .preprocess(
       (x) => parseInt(x as string),
-      z.number({ invalid_type_error: "Must be a number" })
+      z.number({ invalid_type_error: "Must be a number" }),
     )
     .refine((x) => x.toString().length === 9, {
       message: "Must be 9 digits long",
@@ -14,32 +14,46 @@ const bookValidationSchema = z.object({
   user: z.string().min(1),
   serviceSpecialtyCode: z.preprocess(
     (x) => parseInt(x as string),
-    z.number({ invalid_type_error: "Must be a number" })
+    z.number({ invalid_type_error: "Must be a number" }),
   ),
   date: z.string().min(1),
-  appointment: z.object({}),
+  appointment: z.object({
+    TipoPaciente: z.number(),
+    fecCupo: z.string(),
+    horaCupo: z.string(),
+    codHoraCupo: z.number(),
+    conCupo: z.number(),
+    codSeccion: z.number(),
+    tipHoraCupo: z.number(),
+    tipHorario: z.number(),
+    tipProfesional: z.number(),
+    codProfesional: z.string(),
+    codConsultorio: z.number(),
+    dscConsultorio: z.string(),
+    nomProfesional: z.string(),
+  }),
 });
 
 const validationSchema = z.object({
   id: z
     .preprocess(
       (x) => parseInt(x as string),
-      z.number({ invalid_type_error: "Must be a number" })
+      z.number({ invalid_type_error: "Must be a number" }),
     )
     .refine((x) => x.toString().length === 9, {
       message: "Must be 9 digits long",
     }),
   serviceCode: z.preprocess(
     (x) => parseInt(x as string),
-    z.number({ invalid_type_error: "Must be a number" })
+    z.number({ invalid_type_error: "Must be a number" }),
   ),
   specialtyCode: z.preprocess(
     (x) => parseInt(x as string),
-    z.number({ invalid_type_error: "Must be a number" })
+    z.number({ invalid_type_error: "Must be a number" }),
   ),
   serviceSpecialtyCode: z.preprocess(
     (x) => parseInt(x as string),
-    z.number({ invalid_type_error: "Must be a number" })
+    z.number({ invalid_type_error: "Must be a number" }),
   ),
   date: z.string().min(1),
 });
@@ -62,7 +76,7 @@ export async function GET(request: Request) {
   if (!validation.success) {
     return NextResponse.json(
       { errors: validation.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -73,13 +87,13 @@ export async function GET(request: Request) {
       headers: {
         tokenAccesoAPI: token,
       },
-    }
+    },
   );
 
   if (response.status !== 200) {
     return NextResponse.json(
       { message: "Something went wrong" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -94,7 +108,7 @@ export async function POST(request: Request) {
   if (!validation.success) {
     return NextResponse.json(
       { errors: validation.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -102,7 +116,7 @@ export async function POST(request: Request) {
 
   const token = EDUSCrypto.generateToken();
   const response = await fetch(
-    `https://edus.ccss.sa.cr/ccssmovilcitas/registrarCita?tipoIdentificacion=1&numIdentificacion=${id}&codigoUsuario=${user}&codServicioEspecialidad=${serviceSpecialtyCode}&date=${date}`,
+    `https://edus.ccss.sa.cr/ccssmovilcitas/registrarCita?tipoIdentificacion=0&numIdentificacion=${id}&codigoUsuario=${user}&codServicioEspecialidad=${serviceSpecialtyCode}&date=${date}`,
     {
       method: "POST",
       headers: {
@@ -110,13 +124,13 @@ export async function POST(request: Request) {
         tokenAccesoAPI: token,
       },
       body: JSON.stringify(appointment),
-    }
+    },
   );
 
   if (response.status !== 200) {
     return NextResponse.json(
       { message: "Something went wrong" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
