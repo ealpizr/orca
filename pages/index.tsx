@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Flex,
   FormControl,
@@ -68,7 +66,7 @@ const Appointments = () => {
     try {
       setLoading(true);
       const services = await DataService.getServices(
-        appContext.user!.healthCenterCode
+        appContext.user!.healthCenterCode,
       );
 
       setServices(services);
@@ -93,7 +91,7 @@ const Appointments = () => {
         selectedService!.code,
         selectedSpecialty!.code,
         selectedSpecialty!.specialtyServiceCode,
-        date.toLocaleDateString("es-CR")
+        date.toLocaleDateString("es-CR"),
       );
 
       setAppointments(appointments);
@@ -115,7 +113,7 @@ const Appointments = () => {
       setLoading(true);
       const specialties = await DataService.getSpecialties(
         appContext.user!.healthCenterCode,
-        selectedService!.code
+        selectedService!.code,
       );
 
       setSpecialties(specialties);
@@ -139,7 +137,7 @@ const Appointments = () => {
         appContext.user!.user,
         selectedSpecialty!.specialtyServiceCode,
         date.toLocaleDateString("es-CR"),
-        selectedAppointment!
+        selectedAppointment!,
       );
       toast({
         status: "success",

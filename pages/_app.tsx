@@ -1,15 +1,16 @@
-"use client";
-
 import { CacheProvider } from "@chakra-ui/next-js";
 import { ChakraProvider } from "@chakra-ui/react";
+import { AppProps } from "next/app";
 import AppContextProvider from "~/context/app-context-provider";
-import type { ComponentWithChildren } from "~/types";
+import "~/styles/main.css";
 
-export function Providers({ children }: ComponentWithChildren) {
+export default function App({ Component, pageProps }: AppProps) {
   return (
     <AppContextProvider>
       <CacheProvider>
-        <ChakraProvider>{children}</ChakraProvider>
+        <ChakraProvider>
+          <Component {...pageProps} />
+        </ChakraProvider>
       </CacheProvider>
     </AppContextProvider>
   );
